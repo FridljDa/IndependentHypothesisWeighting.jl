@@ -7,6 +7,7 @@ Base.@kwdef struct IHW{M<:PValueAdjustment,WL<:WeightLearner,F,T}
     folds::F = 5
     weight_learner::WL
     α::T = 0.1
+     #::FoldsView
 end
 
 # interface for weight learner
@@ -49,11 +50,11 @@ struct IHWResult{
     ihw_options::I
 end
 
-function fit(ihw::IHW, Ps, Xs)
+function fit(ihw::IHW, Ps, Xs, kf)
     @unpack folds, multiple_testing_method, weight_learner, α = ihw
 
     m = length(Ps)
-    kf = kfolds(shuffleobs(1:m), folds)
+    #kf = kfolds(shuffleobs(1:m), folds)
 
     ws = PriorityWeights(ones(m))
     weighting_fits = []
@@ -85,6 +86,14 @@ function fit(ihw::IHW, Ps, Xs)
     IHWResult(Ps, Xs, ws, adj_p, kf, weighting_fits, ihw)
 end
 
+function fit(ihw::IHW, Ps, Xs)
+    @unpack folds, multiple_testing_method, weight_learner, α = ihw
+
+    m = length(Ps)
+    kf = kfolds(shuffleobs(1:m), folds)
+
+    fit(ihw, Ps, Xs, kf)
+end
 
 adjust(ihwres::IHWResult) = ihwres.adjusted_pvals
 weights(ihwres::IHWResult) = ihwres.weights

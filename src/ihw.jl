@@ -50,11 +50,19 @@ struct IHWResult{
     ihw_options::I
 end
 
-function fit(ihw::IHW, Ps, Xs, kf)
+function fit(ihw::IHW, Ps, Xs)
+    #folds = ihw.folds
+    @unpack folds, multiple_testing_method, weight_learner, α = ihw
+
+    kf = kfolds(shuffleobs(1:m), folds)
+    fit(ihw, Ps, Xs, kf)
+end
+
+function fit(ihw::IHW, Ps, Xs, kf::KF)
     @unpack folds, multiple_testing_method, weight_learner, α = ihw
 
     m = length(Ps)
-    #kf = kfolds(shuffleobs(1:m), folds)
+
 
     ws = PriorityWeights(ones(m))
     weighting_fits = []
